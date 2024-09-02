@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/melbahja/got"
+	"github.com/bitrise-io/got"
 )
 
 func NewHttptestServer() *httptest.Server {

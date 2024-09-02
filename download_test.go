@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/melbahja/got"
+	"github.com/bitrise-io/got"
 )
 
 var (

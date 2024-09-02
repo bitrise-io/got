@@ -1,4 +1,4 @@
-module github.com/melbahja/got
+module github.com/bitrise-io/got
 
 go 1.18
 

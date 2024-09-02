@@ -13,7 +13,7 @@ import (
 	"syscall"
 
 	"github.com/dustin/go-humanize"
-	"github.com/melbahja/got"
+	"github.com/bitrise-io/got"
 	"github.com/urfave/cli/v2"
 	"gitlab.com/poldi1405/go-ansi"
 	"gitlab.com/poldi1405/go-indicators/progress"
