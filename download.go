@@ -343,6 +343,8 @@ func (d *Download) dl(dest io.WriterAt, errC chan error) {
 		go func(i int) {
 			defer wg.Done()
 
+			offsetWriter := &OffsetWriter{dest, int64(d.chunks[i].Start)}
+
 			err := retry.Times(uint(d.MaxInterruptPerChunk)).Try(func(attempt uint) error {
 				log := func(msg string, args ...interface{}) {
 					if d.Logger == nil {
@@ -377,7 +379,7 @@ func (d *Download) dl(dest io.WriterAt, errC chan error) {
 					log("stop ticker")
 				}()
 
-				if err := d.DownloadChunk(ctx, d.chunks[i], &OffsetWriter{dest, int64(d.chunks[i].Start)}); err != nil {
+				if err := d.DownloadChunk(ctx, offsetWriter, d.chunks[i].End); err != nil {
 					return err
 				}
 
@@ -419,7 +421,7 @@ func (d *Download) Path() string {
 }
 
 // DownloadChunk downloads a file chunk.
-func (d *Download) DownloadChunk(ctx context.Context, c *Chunk, dest io.Writer) error {
+func (d *Download) DownloadChunk(ctx context.Context, dest *OffsetWriter, chunkEnd uint64) error {
 
 	var (
 		err error
@@ -431,7 +433,7 @@ func (d *Download) DownloadChunk(ctx context.Context, c *Chunk, dest io.Writer) 
 		return err
 	}
 
-	contentRange := fmt.Sprintf("bytes=%d-%d", c.Start, c.End)
+	contentRange := fmt.Sprintf("bytes=%d-%d", dest.offset, chunkEnd)
 	req.Header.Set("Range", contentRange)
 
 	if res, err = d.Client.Do(req); err != nil {
@@ -439,7 +441,7 @@ func (d *Download) DownloadChunk(ctx context.Context, c *Chunk, dest io.Writer) 
 	}
 
 	// Verify the length
-	if res.ContentLength != int64(c.End-c.Start+1) {
+	if res.ContentLength != int64(chunkEnd-uint64(dest.offset)+1) {
 		return fmt.Errorf(
 			"Range request returned invalid Content-Length: %d however the range was: %s",
 			res.ContentLength, contentRange,
