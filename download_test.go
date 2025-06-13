@@ -38,6 +38,9 @@ func TestGetInfoAndInit(t *testing.T) {
 func TestDownloading(t *testing.T) {
 
 	t.Run("downloadOkFileTest", downloadOkFileTest)
+	t.Run("downloadOneByteFile", downloadOneByteFile)
+	t.Run("downloadTwoByteFile", downloadTwoByteFile)
+	t.Run("downloadThreeByteFile", downloadThreeByteFile)
 	t.Run("downloadNotFoundTest", downloadNotFoundTest)
 	t.Run("downloadOkFileContentTest", downloadOkFileContentTest)
 	t.Run("downloadTimeoutContextTest", downloadTimeoutContextTest)
@@ -374,6 +377,61 @@ func coverTests(t *testing.T) {
 		d.AvgSpeed()
 		d.TotalCost()
 	})
+}
+
+func downloadOneByteFile(t *testing.T) {
+	runSmallFileDownloadTest(t, "1_byte_file", "testdata/1-byte.txt")
+}
+
+func downloadTwoByteFile(t *testing.T) {
+	runSmallFileDownloadTest(t, "2_byte_file", "testdata/2-byte.txt")
+}
+
+func downloadThreeByteFile(t *testing.T) {
+	runSmallFileDownloadTest(t, "3_byte_file", "testdata/3-byte.txt")
+}
+
+func runSmallFileDownloadTest(t *testing.T, endpoint, path string) {
+	tmpFile := createTemp()
+	defer clean(tmpFile)
+
+	dl := &got.Download{
+		URL:  httpt.URL + "/" + endpoint,
+		Dest: tmpFile,
+	}
+
+	// Init
+	if err := dl.Init(); err != nil {
+		t.Error(err)
+		return
+	}
+
+	fileStat, err := os.Stat(path)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	// Check size
+	if dl.TotalSize() != uint64(fileStat.Size()) {
+		t.Errorf("Invalid file size, wants %d but got %d", fileStat.Size(), dl.TotalSize())
+	}
+
+	// Start download
+	if err := dl.Start(); err != nil {
+		t.Error(err)
+	}
+
+	downloadedStat, err := os.Stat(tmpFile)
+
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	if fileStat.Size() != downloadedStat.Size() {
+		t.Errorf("Expecting size: %d, but got %d", fileStat.Size(), downloadedStat.Size())
+	}
 }
 
 func ExampleDownload() {

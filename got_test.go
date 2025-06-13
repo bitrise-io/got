@@ -22,6 +22,24 @@ func NewHttptestServer() *httptest.Server {
 			http.ServeFile(w, r, "go.mod")
 			return
 
+		case "/1_byte_file":
+			w.Header().Set("Content-Length", "1")
+			w.Header().Set("Content-Range", "bytes 0-0/1")
+			http.ServeFile(w, r, "testdata/1-byte.txt")
+			return
+
+		case "/2_byte_file":
+			w.Header().Set("Content-Length", "1")
+			w.Header().Set("Content-Range", "bytes 0-0/2")
+			http.ServeFile(w, r, "testdata/2-byte.txt")
+			return
+
+		case "/3_byte_file":
+			w.Header().Set("Content-Length", "1")
+			w.Header().Set("Content-Range", "bytes 0-0/3")
+			http.ServeFile(w, r, "testdata/3-byte.txt")
+			return
+
 		case "/found_and_head_not_allowed":
 
 			if r.Method == http.MethodHead {
